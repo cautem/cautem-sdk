@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-10-13
+
+### Changed
+
+- Split the Go control client into focused lifecycle, sandbox, log, and overview files.
+- Use generated first-party API types from the published `cautem-proto` module.
+
 ## [v0.1.6] - 2026-10-11
 
 ### Changed
