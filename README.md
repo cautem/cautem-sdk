@@ -20,7 +20,15 @@
 
 The [gateway guide](https://cautem.github.io/sandbox.dev/guides/gateway/) describes the service this client calls. [OpenShell compatibility](https://cautem.github.io/sandbox.dev/reference/openshell-compatibility/) is tracked separately from this SDK's HTTP API.
 
-**cautem-sdk** talks to [cautem-gateway](https://github.com/cautem/cautem-gateway) through typed RPC clients. Sandbox inventory, detail, lifecycle, logs, provider profiles, partial provider credential updates, policy workflows, and service/template listings use generated native gRPC clients for `cautem.control.v1`; command execution, provider instances/attachments/refresh, workspace resources, and SSH session issue/revoke use the pinned OpenShell Go SDK. Settings, service/template details and writes, supervisor registration, and some other cautem-only workflows still use REST routes and are being migrated. Interactive byte streams stay on the CLI (`cautem connect`). REST compatibility is not a migration requirement.
+**cautem-sdk** talks to [cautem-gateway](https://github.com/cautem/cautem-gateway) through typed RPC clients. Its methods use these transports:
+
+| Transport | SDK methods |
+| --- | --- |
+| `cautem.control.v1` gRPC | `*ControlSandbox*`, `*ControlOperation*`, control log methods, `PostLogs`, proposal and policy methods, profile and credential methods, `ListServices`, `ListTemplates`, inference methods, `Info`, `Whoami`, and `ControlOverview` |
+| OpenShell gRPC | `Create`, `List`, `Get`, `Start`, `Stop`, `Delete`, and `Exec`; provider, workspace, service, SSH session, and gateway setting methods |
+| HTTP compatibility | `Healthz` and `AuthLogin` |
+
+Interactive byte streams stay on the CLI (`cautem connect`). New gateway operations use the existing gRPC contracts.
 
 ### Key Features
 
@@ -69,7 +77,7 @@ func main() {
 | Path | Purpose |
 |------|---------|
 | `go/cautem` | Public Go SDK |
-| `internal/gatewayclient/` | HTTP API implementation (not importable outside the module) |
+| `internal/gatewayclient/` | HTTP compatibility client and shared SDK record types (not importable outside the module) |
 
 `ListControlSandboxes(ctx, workspace, allWorkspaces)`, `GetControlSandbox`,
 `GetControlSandboxLogs`, and `WatchControlSandboxLogs` use

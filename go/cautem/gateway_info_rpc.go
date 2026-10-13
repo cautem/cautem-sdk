@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	controlv1 "github.com/cautem/cautem-gateway/api/gen/cautem/control/v1"
+	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
 )
 
 func (c *Client) gatewayInfo(ctx context.Context) (map[string]any, error) {

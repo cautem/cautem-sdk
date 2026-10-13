@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	controlv1 "github.com/cautem/cautem-gateway/api/gen/cautem/control/v1"
+	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
 )
 
 // PostLogs appends bounded observation lines through the authenticated Control

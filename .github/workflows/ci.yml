@@ -30,12 +30,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout Control API dependency
+      - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-gateway
-          path: cautem-gateway
-          ref: 04b03e68ca944668332e8726050f2bc6549ad2e0
+          repository: cautem/cautem-proto
+          path: cautem-proto
+          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
 
       - name: Configure Go workspace
         shell: bash
@@ -45,10 +45,10 @@ jobs:
 
           use (
             .
-            ./cautem-gateway
+            ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-gateway v0.1.6 => ./cautem-gateway
+          replace github.com/cautem/cautem-proto v0.1.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -77,12 +77,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout Control API dependency
+      - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-gateway
-          path: cautem-gateway
-          ref: 04b03e68ca944668332e8726050f2bc6549ad2e0
+          repository: cautem/cautem-proto
+          path: cautem-proto
+          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
 
       - name: Configure Go workspace
         shell: bash
@@ -92,10 +92,10 @@ jobs:
 
           use (
             .
-            ./cautem-gateway
+            ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-gateway v0.1.6 => ./cautem-gateway
+          replace github.com/cautem/cautem-proto v0.1.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -124,12 +124,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout Control API dependency
+      - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-gateway
-          path: cautem-gateway
-          ref: 04b03e68ca944668332e8726050f2bc6549ad2e0
+          repository: cautem/cautem-proto
+          path: cautem-proto
+          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
 
       - name: Configure Go workspace
         shell: bash
@@ -139,10 +139,10 @@ jobs:
 
           use (
             .
-            ./cautem-gateway
+            ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-gateway v0.1.6 => ./cautem-gateway
+          replace github.com/cautem/cautem-proto v0.1.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -169,12 +169,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout Control API dependency
+      - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-gateway
-          path: cautem-gateway
-          ref: 04b03e68ca944668332e8726050f2bc6549ad2e0
+          repository: cautem/cautem-proto
+          path: cautem-proto
+          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
 
       - name: Configure Go workspace
         shell: bash
@@ -184,10 +184,10 @@ jobs:
 
           use (
             .
-            ./cautem-gateway
+            ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-gateway v0.1.6 => ./cautem-gateway
+          replace github.com/cautem/cautem-proto v0.1.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5

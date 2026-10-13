@@ -1,6 +1,6 @@
 # Roadmap — cautem-sdk
 
-Status: **v0.1.6** (stable numbered release) · Talks to [cautem-gateway](https://github.com/cautem/cautem-gateway)
+Status: **v0.2.0** (release prepared) · Uses [cautem-proto](https://github.com/cautem/cautem-proto) `v0.1.0` and talks to [cautem-gateway](https://github.com/cautem/cautem-gateway)
 
 ## This module
 
@@ -12,4 +12,4 @@ Status: **v0.1.6** (stable numbered release) · Talks to [cautem-gateway](https:
 
 ## Release
 
-Leaf-ish module (no cautem-* Go requires) · can tag with core wave.
+Leaf module for the Go release cascade; it consumes the published protocol module.
