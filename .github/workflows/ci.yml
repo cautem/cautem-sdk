@@ -35,7 +35,7 @@ jobs:
         with:
           repository: cautem/cautem-proto
           path: cautem-proto
-          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
+          ref: 35501bd8a5e06cf5fe1a948cec2cabb86827b8d5
 
       - name: Configure Go workspace
         shell: bash
@@ -82,7 +82,7 @@ jobs:
         with:
           repository: cautem/cautem-proto
           path: cautem-proto
-          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
+          ref: 35501bd8a5e06cf5fe1a948cec2cabb86827b8d5
 
       - name: Configure Go workspace
         shell: bash
@@ -129,7 +129,7 @@ jobs:
         with:
           repository: cautem/cautem-proto
           path: cautem-proto
-          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
+          ref: 35501bd8a5e06cf5fe1a948cec2cabb86827b8d5
 
       - name: Configure Go workspace
         shell: bash
@@ -174,7 +174,7 @@ jobs:
         with:
           repository: cautem/cautem-proto
           path: cautem-proto
-          ref: 9d2d4ca5664f81e1349fc5f11cdd09895340328c
+          ref: 35501bd8a5e06cf5fe1a948cec2cabb86827b8d5
 
       - name: Configure Go workspace
         shell: bash
