@@ -27,8 +27,13 @@ type WorkspaceMember struct {
 
 // WorkspaceRecord matches gateway store.WorkspaceRecord.
 type WorkspaceRecord struct {
-	Name    string            `json:"name"`
-	Members []WorkspaceMember `json:"members,omitempty"`
+	ID              string            `json:"id,omitempty"`
+	Name            string            `json:"name"`
+	ResourceVersion uint64            `json:"resource_version,omitempty"`
+	Members         []WorkspaceMember `json:"members,omitempty"`
+	Labels          map[string]string `json:"labels,omitempty"`
+	CreatedAt       string            `json:"created_at,omitempty"`
+	Status          string            `json:"status,omitempty"`
 }
 
 // ListServices GET /v1/services.

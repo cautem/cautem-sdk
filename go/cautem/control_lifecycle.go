@@ -16,6 +16,7 @@ type ControlMutationResult struct {
 	Sandbox     Sandbox
 	RequestID   string
 	OperationID string
+	Completed   bool
 	Deleted     bool
 }
 
@@ -35,6 +36,9 @@ type ControlOperation struct {
 // CreateControlSandbox creates a runtime sandbox through the authorized control RPC.
 func (c *Client) CreateControlSandbox(ctx context.Context, sandbox Sandbox, command []string) (Sandbox, error) {
 	result, err := c.CreateControlSandboxOperation(ctx, sandbox, command)
+	if err == nil && !result.Completed {
+		return Sandbox{}, fmt.Errorf("create control sandbox %q: gateway did not confirm completion", sandbox.Name)
+	}
 	return result.Sandbox, err
 }
 
@@ -57,25 +61,36 @@ func (c *Client) CreateControlSandboxOperation(ctx context.Context, sandbox Sand
 	}
 	response, err := client.CreateSandbox(ctx, &controlv1.CreateSandboxRequest{
 		Workspace: workspace, Name: sandbox.Name, Image: sandbox.Image,
-		Labels: sandbox.Labels, Command: append([]string(nil), command...), RequestId: requestID,
+		WorkloadTemplateName: sandbox.WorkloadTemplateName,
+		Labels:               sandbox.Labels, Command: append([]string(nil), command...), RequestId: requestID,
+		CpuMillis: sandbox.CPUMillis, MemoryBytes: sandbox.MemoryBytes, GpuCount: sandbox.GPUCount,
+		Environment: sandbox.Environment, DriverConfigJson: sandbox.DriverConfigJSON,
+		Tty: sandbox.TTY, PidsLimit: sandbox.PidsLimit, CdiDevices: append([]string(nil), sandbox.CDIDevices...),
 	})
 	if err != nil {
 		return result, fmt.Errorf("create control sandbox %q (request %s): %w", sandbox.Name, requestID, err)
 	}
 	result.Sandbox = sandboxFromSummary(response.GetSandbox())
 	result.OperationID = response.GetOperationId()
+	result.Completed = response.GetCompleted()
 	return result, nil
 }
 
 // StartControlSandbox starts one caller-visible runtime sandbox.
 func (c *Client) StartControlSandbox(ctx context.Context, workspace, name string) (Sandbox, error) {
 	result, err := c.ChangeControlSandboxStateOperation(ctx, workspace, name, "start")
+	if err == nil && !result.Completed {
+		return Sandbox{}, fmt.Errorf("start control sandbox %q: gateway did not confirm completion", name)
+	}
 	return result.Sandbox, err
 }
 
 // StopControlSandbox stops one caller-visible runtime sandbox.
 func (c *Client) StopControlSandbox(ctx context.Context, workspace, name string) (Sandbox, error) {
 	result, err := c.ChangeControlSandboxStateOperation(ctx, workspace, name, "stop")
+	if err == nil && !result.Completed {
+		return Sandbox{}, fmt.Errorf("stop control sandbox %q: gateway did not confirm completion", name)
+	}
 	return result.Sandbox, err
 }
 
@@ -141,6 +156,7 @@ func (c *Client) ChangeControlSandboxStateOperation(ctx context.Context, workspa
 		}
 		result.Sandbox = sandboxFromSummary(response.GetSandbox())
 		result.OperationID = response.GetOperationId()
+		result.Completed = response.GetCompleted()
 		return result, nil
 	case "stop":
 		response, callErr := client.StopSandbox(ctx, &controlv1.StopSandboxRequest{
@@ -152,6 +168,7 @@ func (c *Client) ChangeControlSandboxStateOperation(ctx context.Context, workspa
 		}
 		result.Sandbox = sandboxFromSummary(response.GetSandbox())
 		result.OperationID = response.GetOperationId()
+		result.Completed = response.GetCompleted()
 		return result, nil
 	default:
 		return result, fmt.Errorf("unsupported sandbox action %q", action)

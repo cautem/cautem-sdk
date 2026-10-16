@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	openshell "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
-	opentypes "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1/types"
+	compatSDK "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
+	compatTypes "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1/types"
 	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,17 +22,17 @@ const runtimeCredentialsAnnotation = "cautem.io/runtime-credentials"
 // ListProviders lists provider metadata through the pinned OpenShell contract.
 // Credential values are never copied into the public SDK record.
 func (c *Client) ListProviders(ctx context.Context) ([]ProviderRecord, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return nil, err
 	}
-	providers, err := client.Providers().List(ctx, c.workspace(), openshell.ListOptions{Limit: 1000})
+	providers, err := client.Providers().ListAll(ctx, c.workspace(), compatSDK.ListOptions{PageSize: 1000})
 	if err != nil {
-		return nil, fmt.Errorf("list OpenShell providers: %w", err)
+		return nil, fmt.Errorf("list providers: %w", err)
 	}
 	result := make([]ProviderRecord, 0, len(providers))
 	for _, provider := range providers {
-		result = append(result, providerRecordFromOpenShell(provider))
+		result = append(result, providerRecordFromWire(provider))
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].Name < result[j].Name })
 	return result, nil
@@ -40,15 +40,15 @@ func (c *Client) ListProviders(ctx context.Context) ([]ProviderRecord, error) {
 
 // GetProvider reads provider metadata through the pinned OpenShell contract.
 func (c *Client) GetProvider(ctx context.Context, name string) (ProviderRecord, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return ProviderRecord{}, err
 	}
 	provider, err := client.Providers().Get(ctx, c.workspace(), name)
 	if err != nil {
-		return ProviderRecord{}, fmt.Errorf("get OpenShell provider %q: %w", name, err)
+		return ProviderRecord{}, fmt.Errorf("get provider %q: %w", name, err)
 	}
-	return providerRecordFromOpenShell(provider), nil
+	return providerRecordFromWire(provider), nil
 }
 
 // PutProvider creates or updates a provider through the pinned OpenShell RPC.
@@ -62,7 +62,7 @@ func (c *Client) PutProvider(ctx context.Context, record ProviderRecord) error {
 	if !sameCredentialKeys(record.EnvVars, record.Credentials) {
 		return c.UpdateProviderCredentials(ctx, record.Workspace, record.Name, record.Credentials)
 	}
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
@@ -70,14 +70,14 @@ func (c *Client) PutProvider(ctx context.Context, record ProviderRecord) error {
 	if workspace == "" {
 		workspace = c.workspace()
 	}
-	provider := &openshell.Provider{
+	provider := &compatSDK.Provider{
 		Name:      record.Name,
 		Type:      record.Type,
 		Workspace: workspace,
 		Annotations: map[string]string{
 			runtimeCredentialsAnnotation: strconv.FormatBool(record.RuntimeCredentials),
 		},
-		Spec: opentypes.ProviderSpec{
+		Spec: compatTypes.ProviderSpec{
 			Credentials:         map[string]string(record.Credentials),
 			Config:              map[string]string(record.Config),
 			CredentialExpiresAt: make(map[string]time.Time, len(record.CredentialExpiresAtMS)),
@@ -94,17 +94,17 @@ func (c *Client) PutProvider(ctx context.Context, record ProviderRecord) error {
 	} else if status.Code(getErr) == codes.NotFound {
 		_, err = client.Providers().Create(ctx, workspace, provider)
 	} else {
-		return fmt.Errorf("inspect OpenShell provider %q before update: %w", record.Name, getErr)
+		return fmt.Errorf("inspect provider %q before update: %w", record.Name, getErr)
 	}
 	if err != nil {
-		return fmt.Errorf("write OpenShell provider %q: %w", record.Name, err)
+		return fmt.Errorf("write provider %q: %w", record.Name, err)
 	}
 	for key, refresh := range record.Refresh {
-		strategy, ok := openShellRefreshStrategy(refresh.Strategy)
+		strategy, ok := compatRefreshStrategy(refresh.Strategy)
 		if !ok {
 			return fmt.Errorf("provider %q credential %q: unsupported refresh strategy %q", record.Name, key, refresh.Strategy)
 		}
-		config := &openshell.RefreshConfig{
+		config := &compatSDK.RefreshConfig{
 			Provider: record.Name, CredentialKey: key, Strategy: strategy,
 			Material: refresh.Material,
 		}
@@ -113,7 +113,7 @@ func (c *Client) PutProvider(ctx context.Context, record ProviderRecord) error {
 			config.ExpiresAt = &expires
 		}
 		if _, err := client.Providers().Refresh().Configure(ctx, workspace, config); err != nil {
-			return fmt.Errorf("configure OpenShell refresh for provider %q credential %q: %w", record.Name, key, err)
+			return fmt.Errorf("configure refresh for provider %q credential %q: %w", record.Name, key, err)
 		}
 	}
 	return nil
@@ -133,61 +133,61 @@ func sameCredentialKeys(keys []string, credentials map[string]string) bool {
 
 // DeleteProvider deletes a provider through the pinned OpenShell contract.
 func (c *Client) DeleteProvider(ctx context.Context, name string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	if err := client.Providers().Delete(ctx, c.workspace(), name); err != nil {
-		return fmt.Errorf("delete OpenShell provider %q: %w", name, err)
+	if _, err := client.Providers().Delete(ctx, c.workspace(), name); err != nil {
+		return fmt.Errorf("delete provider %q: %w", name, err)
 	}
 	return nil
 }
 
 // AttachProvider attaches a provider with an optimistic sandbox version check.
 func (c *Client) AttachProvider(ctx context.Context, sandbox, provider string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
 	current, err := client.Sandboxes().Get(ctx, c.workspace(), sandbox)
 	if err != nil {
-		return fmt.Errorf("get OpenShell sandbox %q before provider attach: %w", sandbox, err)
+		return fmt.Errorf("get sandbox %q before provider attach: %w", sandbox, err)
 	}
 	if _, err := client.Sandboxes().AttachProvider(ctx, c.workspace(), sandbox, provider, current.ResourceVersion); err != nil {
-		return fmt.Errorf("attach OpenShell provider %q to sandbox %q: %w", provider, sandbox, err)
+		return fmt.Errorf("attach provider %q to sandbox %q: %w", provider, sandbox, err)
 	}
 	return nil
 }
 
 // DetachProvider detaches a provider with an optimistic sandbox version check.
 func (c *Client) DetachProvider(ctx context.Context, sandbox, provider string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
 	current, err := client.Sandboxes().Get(ctx, c.workspace(), sandbox)
 	if err != nil {
-		return fmt.Errorf("get OpenShell sandbox %q before provider detach: %w", sandbox, err)
+		return fmt.Errorf("get sandbox %q before provider detach: %w", sandbox, err)
 	}
 	if _, err := client.Sandboxes().DetachProvider(ctx, c.workspace(), sandbox, provider, current.ResourceVersion); err != nil {
-		return fmt.Errorf("detach OpenShell provider %q from sandbox %q: %w", provider, sandbox, err)
+		return fmt.Errorf("detach provider %q from sandbox %q: %w", provider, sandbox, err)
 	}
 	return nil
 }
 
 // ListSandboxProviders lists attached provider metadata without credential values.
 func (c *Client) ListSandboxProviders(ctx context.Context, sandbox string) ([]gc.SandboxProviderAttachment, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return nil, err
 	}
-	providers, err := client.Sandboxes().ListProviders(ctx, c.workspace(), sandbox)
+	providers, err := client.Sandboxes().ListAllProviders(ctx, c.workspace(), sandbox)
 	if err != nil {
-		return nil, fmt.Errorf("list OpenShell providers attached to sandbox %q: %w", sandbox, err)
+		return nil, fmt.Errorf("list providers attached to sandbox %q: %w", sandbox, err)
 	}
 	result := make([]gc.SandboxProviderAttachment, 0, len(providers))
 	for _, provider := range providers {
-		record := providerRecordFromOpenShell(provider)
+		record := providerRecordFromWire(provider)
 		result = append(result, gc.SandboxProviderAttachment{Name: record.Name, Type: record.Type, EnvVars: record.EnvVars})
 	}
 	return result, nil
@@ -195,21 +195,21 @@ func (c *Client) ListSandboxProviders(ctx context.Context, sandbox string) ([]gc
 
 // CreateSSHSession issues a short-lived session over the OpenShell RPC.
 func (c *Client) CreateSSHSession(ctx context.Context, sandbox string) (SSHSession, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return SSHSession{}, err
 	}
 	resource, err := client.Sandboxes().Get(ctx, c.workspace(), sandbox)
 	if err != nil {
-		return SSHSession{}, fmt.Errorf("get OpenShell sandbox %q for SSH: %w", sandbox, err)
+		return SSHSession{}, fmt.Errorf("get sandbox %q for SSH: %w", sandbox, err)
 	}
 	session, err := client.SSH().CreateSession(ctx, c.workspace(), resource.ID)
 	if err != nil {
-		var upstreamErr *opentypes.StatusError
-		if errors.As(err, &upstreamErr) && upstreamErr.Code == opentypes.ErrorConflict && strings.Contains(strings.ToLower(upstreamErr.Message), "not ready") {
+		var upstreamErr *compatTypes.StatusError
+		if errors.As(err, &upstreamErr) && upstreamErr.Code == compatTypes.ErrorConflict && strings.Contains(strings.ToLower(upstreamErr.Message), "not ready") {
 			return SSHSession{}, fmt.Errorf("%w: %s", ErrSandboxNotReady, upstreamErr.Message)
 		}
-		return SSHSession{}, fmt.Errorf("create OpenShell SSH session for sandbox %q: %w", sandbox, err)
+		return SSHSession{}, fmt.Errorf("create SSH session for sandbox %q: %w", sandbox, err)
 	}
 	return SSHSession{
 		SandboxID: session.SandboxID, Token: session.Token,
@@ -220,70 +220,70 @@ func (c *Client) CreateSSHSession(ctx context.Context, sandbox string) (SSHSessi
 
 // RevokeSSHSession revokes a session by its secret token using OpenShell RPC.
 func (c *Client) RevokeSSHSession(ctx context.Context, token string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
 	if _, err := client.SSH().RevokeSession(ctx, c.workspace(), token); err != nil {
-		return fmt.Errorf("revoke OpenShell SSH session: %w", err)
+		return fmt.Errorf("revoke SSH session: %w", err)
 	}
 	return nil
 }
 
 // ConfigureProviderRefresh configures gateway-managed credential rotation via OpenShell RPC.
 func (c *Client) ConfigureProviderRefresh(ctx context.Context, name, key, strategy string, material map[string]string, expiresAtMS int64) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	openStrategy, ok := openShellRefreshStrategy(strategy)
+	openStrategy, ok := compatRefreshStrategy(strategy)
 	if !ok {
 		return fmt.Errorf("unsupported refresh strategy %q", strategy)
 	}
-	config := &openshell.RefreshConfig{Provider: name, CredentialKey: key, Strategy: openStrategy, Material: material}
+	config := &compatSDK.RefreshConfig{Provider: name, CredentialKey: key, Strategy: openStrategy, Material: material}
 	if expiresAtMS > 0 {
 		expires := time.UnixMilli(expiresAtMS)
 		config.ExpiresAt = &expires
 	}
 	if _, err := client.Providers().Refresh().Configure(ctx, c.workspace(), config); err != nil {
-		return fmt.Errorf("configure OpenShell provider refresh: %w", err)
+		return fmt.Errorf("configure provider refresh: %w", err)
 	}
 	return nil
 }
 
 // RotateProviderRefresh rotates one provider credential through OpenShell RPC.
 func (c *Client) RotateProviderRefresh(ctx context.Context, name, key string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
 	if _, err := client.Providers().Refresh().Rotate(ctx, c.workspace(), name, key); err != nil {
-		return fmt.Errorf("rotate OpenShell provider credential: %w", err)
+		return fmt.Errorf("rotate provider credential: %w", err)
 	}
 	return nil
 }
 
 // DeleteProviderRefresh removes refresh configuration through OpenShell RPC.
 func (c *Client) DeleteProviderRefresh(ctx context.Context, name, key string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
 	if _, err := client.Providers().Refresh().Delete(ctx, c.workspace(), name, key); err != nil {
-		return fmt.Errorf("delete OpenShell provider refresh: %w", err)
+		return fmt.Errorf("delete provider refresh: %w", err)
 	}
 	return nil
 }
 
 // ListWorkspaces lists workspaces through the pinned OpenShell contract.
 func (c *Client) ListWorkspaces(ctx context.Context) ([]gc.WorkspaceRecord, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return nil, err
 	}
-	items, err := client.Workspaces().List(ctx, openshell.ListOptions{Limit: 1000})
+	items, err := client.Workspaces().ListAll(ctx, compatSDK.ListOptions{PageSize: 1000})
 	if err != nil {
-		return nil, fmt.Errorf("list OpenShell workspaces: %w", err)
+		return nil, fmt.Errorf("list workspaces: %w", err)
 	}
 	result := make([]gc.WorkspaceRecord, 0, len(items))
 	for _, workspace := range items {
@@ -295,16 +295,16 @@ func (c *Client) ListWorkspaces(ctx context.Context) ([]gc.WorkspaceRecord, erro
 
 // GetWorkspace reads one workspace and its members through OpenShell RPC.
 func (c *Client) GetWorkspace(ctx context.Context, name string) (gc.WorkspaceRecord, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return gc.WorkspaceRecord{}, err
 	}
 	if _, err = client.Workspaces().Get(ctx, name); err != nil {
-		return gc.WorkspaceRecord{}, fmt.Errorf("get OpenShell workspace %q: %w", name, err)
+		return gc.WorkspaceRecord{}, fmt.Errorf("get workspace %q: %w", name, err)
 	}
-	members, err := client.Workspaces().ListMembers(ctx, name, openshell.ListOptions{Limit: 1000})
+	members, err := client.Workspaces().ListAllMembers(ctx, name, compatSDK.ListOptions{PageSize: 1000})
 	if err != nil {
-		return gc.WorkspaceRecord{}, fmt.Errorf("list OpenShell workspace members %q: %w", name, err)
+		return gc.WorkspaceRecord{}, fmt.Errorf("list workspace members %q: %w", name, err)
 	}
 	result := gc.WorkspaceRecord{Name: name, Members: make([]gc.WorkspaceMember, 0, len(members))}
 	for _, member := range members {
@@ -315,57 +315,69 @@ func (c *Client) GetWorkspace(ctx context.Context, name string) (gc.WorkspaceRec
 
 // CreateWorkspace creates a workspace through the pinned OpenShell contract.
 func (c *Client) CreateWorkspace(ctx context.Context, name string) (gc.WorkspaceRecord, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return gc.WorkspaceRecord{}, err
 	}
 	if _, err := client.Workspaces().Create(ctx, name, nil); err != nil {
-		return gc.WorkspaceRecord{}, fmt.Errorf("create OpenShell workspace %q: %w", name, err)
+		return gc.WorkspaceRecord{}, fmt.Errorf("create workspace %q: %w", name, err)
 	}
 	return gc.WorkspaceRecord{Name: name}, nil
 }
 
+// CreateWorkspaceWithLabels creates a workspace with metadata labels through the pinned compatibility contract.
+func (c *Client) CreateWorkspaceWithLabels(ctx context.Context, name string, labels map[string]string) (gc.WorkspaceRecord, error) {
+	client, err := c.compatSDKClient()
+	if err != nil {
+		return gc.WorkspaceRecord{}, err
+	}
+	if _, err := client.Workspaces().Create(ctx, name, labels); err != nil {
+		return gc.WorkspaceRecord{}, fmt.Errorf("create workspace %q: %w", name, err)
+	}
+	return gc.WorkspaceRecord{Name: name, Labels: cloneStringMap(labels)}, nil
+}
+
 // DeleteWorkspace deletes a workspace through the pinned OpenShell contract.
 func (c *Client) DeleteWorkspace(ctx context.Context, name string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	if err := client.Workspaces().Delete(ctx, name); err != nil {
-		return fmt.Errorf("delete OpenShell workspace %q: %w", name, err)
+	if _, err := client.Workspaces().Delete(ctx, name); err != nil {
+		return fmt.Errorf("delete workspace %q: %w", name, err)
 	}
 	return nil
 }
 
 // WorkspaceMemberAdd adds or updates one workspace member through OpenShell RPC.
 func (c *Client) WorkspaceMemberAdd(ctx context.Context, name, subject, role string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	openRole := openshell.WorkspaceRoleUser
+	openRole := compatSDK.WorkspaceRoleUser
 	if strings.EqualFold(role, "admin") {
-		openRole = openshell.WorkspaceRoleAdmin
+		openRole = compatSDK.WorkspaceRoleAdmin
 	}
 	if _, err := client.Workspaces().AddMember(ctx, name, subject, openRole); err != nil {
-		return fmt.Errorf("add OpenShell workspace member %q: %w", subject, err)
+		return fmt.Errorf("add workspace member %q: %w", subject, err)
 	}
 	return nil
 }
 
 // WorkspaceMemberRemove removes a workspace member through OpenShell RPC.
 func (c *Client) WorkspaceMemberRemove(ctx context.Context, name, subject string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	if err := client.Workspaces().RemoveMember(ctx, name, subject); err != nil {
-		return fmt.Errorf("remove OpenShell workspace member %q: %w", subject, err)
+	if _, err := client.Workspaces().RemoveMember(ctx, name, subject); err != nil {
+		return fmt.Errorf("remove workspace member %q: %w", subject, err)
 	}
 	return nil
 }
 
-func providerRecordFromOpenShell(provider *openshell.Provider) gc.ProviderRecord {
+func providerRecordFromWire(provider *compatSDK.Provider) gc.ProviderRecord {
 	record := gc.ProviderRecord{
 		Name:                  provider.Name,
 		Type:                  provider.Type,
@@ -385,12 +397,12 @@ func providerRecordFromOpenShell(provider *openshell.Provider) gc.ProviderRecord
 	return record
 }
 
-func openShellRefreshStrategy(strategy string) (openshell.RefreshStrategy, bool) {
+func compatRefreshStrategy(strategy string) (compatSDK.RefreshStrategy, bool) {
 	switch strings.ToLower(strings.ReplaceAll(strategy, "_", "-")) {
 	case "oauth2-refresh-token":
-		return openshell.RefreshStrategyOAuth2RefreshToken, true
+		return compatSDK.RefreshStrategyOAuth2RefreshToken, true
 	case "oauth2-client-credentials":
-		return openshell.RefreshStrategyOAuth2ClientCredentials, true
+		return compatSDK.RefreshStrategyOAuth2ClientCredentials, true
 	default:
 		return "", false
 	}

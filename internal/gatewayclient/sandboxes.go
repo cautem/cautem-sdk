@@ -12,16 +12,26 @@ import (
 
 // Sandbox is the registry payload.
 type Sandbox struct {
-	Name              string   `json:"name"`
-	ID                string   `json:"id,omitempty"`
-	Image             string   `json:"image,omitempty"`
-	Workspace         string   `json:"workspace,omitempty"`
-	ResourceVersion   uint64   `json:"resource_version,omitempty"`
-	Network           string   `json:"network,omitempty"`
-	Status            string   `json:"status,omitempty"`
-	Labels            Labels   `json:"labels,omitempty"`
-	BasePolicyYAML    string   `json:"base_policy_yaml,omitempty"`
-	AttachedProviders []string `json:"attached_providers,omitempty"`
+	Name                 string            `json:"name"`
+	ID                   string            `json:"id,omitempty"`
+	Image                string            `json:"image,omitempty"`
+	Workspace            string            `json:"workspace,omitempty"`
+	WorkloadTemplateName string            `json:"workload_template_name,omitempty"`
+	CPUMillis            uint32            `json:"cpu_millis,omitempty"`
+	MemoryBytes          uint64            `json:"memory_bytes,omitempty"`
+	GPUCount             uint32            `json:"gpu_count,omitempty"`
+	PidsLimit            int64             `json:"pids_limit,omitempty"`
+	CDIDevices           []string          `json:"cdi_devices,omitempty"`
+	TTY                  bool              `json:"tty,omitempty"`
+	Environment          map[string]string `json:"environment,omitempty"`
+	DriverConfigJSON     string            `json:"driver_config_json,omitempty"`
+	ResourceVersion      uint64            `json:"resource_version,omitempty"`
+	ComputeDriver        string            `json:"compute_driver,omitempty"`
+	Network              string            `json:"network,omitempty"`
+	Status               string            `json:"status,omitempty"`
+	Labels               Labels            `json:"labels,omitempty"`
+	BasePolicyYAML       string            `json:"base_policy_yaml,omitempty"`
+	AttachedProviders    []string          `json:"attached_providers,omitempty"`
 }
 
 // UpsertSandbox PUT /v1/sandboxes/{name}.
