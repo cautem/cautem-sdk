@@ -7,7 +7,7 @@ import (
 	"time"
 
 	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
-	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
+	gc "github.com/cautem/quarshell-sdk/internal/gatewayclient"
 )
 
 // TemplateRecord is the caller-visible catalog view of a sandbox template.

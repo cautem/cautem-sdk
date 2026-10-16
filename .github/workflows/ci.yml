@@ -54,7 +54,7 @@ jobs:
       - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-proto
+          repository: cautem/quarshell-proto
           path: cautem-proto
           ref: 0297d796a01ee3ef2c22aacb57d72080cde8add7
 
@@ -101,7 +101,7 @@ jobs:
       - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-proto
+          repository: cautem/quarshell-proto
           path: cautem-proto
           ref: 0297d796a01ee3ef2c22aacb57d72080cde8add7
 
@@ -148,7 +148,7 @@ jobs:
       - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-proto
+          repository: cautem/quarshell-proto
           path: cautem-proto
           ref: 0297d796a01ee3ef2c22aacb57d72080cde8add7
 
@@ -193,7 +193,7 @@ jobs:
       - name: Checkout cautem-proto dependency
         uses: actions/checkout@v4
         with:
-          repository: cautem/cautem-proto
+          repository: cautem/quarshell-proto
           path: cautem-proto
           ref: 0297d796a01ee3ef2c22aacb57d72080cde8add7
 

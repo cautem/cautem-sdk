@@ -22,7 +22,7 @@ import (
 
 	compatSDK "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
 	compatTypes "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1/types"
-	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
+	gc "github.com/cautem/quarshell-sdk/internal/gatewayclient"
 	"google.golang.org/grpc"
 )
 

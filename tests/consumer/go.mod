@@ -1,10 +1,10 @@
-module github.com/cautem/cautem-sdk/tests/consumer
+module github.com/cautem/quarshell-sdk/tests/consumer
 
 go 1.27.0
 
 toolchain go1.27.2
 
-require github.com/cautem/cautem-sdk v0.0.0
+require github.com/cautem/quarshell-sdk v0.0.0
 
 require (
 	github.com/NVIDIA/OpenShell/sdk/go v0.0.0-20261013191600-5a7728c304b5 // indirect
@@ -19,4 +19,4 @@ require (
 	google.golang.org/protobuf v1.36.12 // indirect
 )
 
-replace github.com/cautem/cautem-sdk => ../..
+replace github.com/cautem/quarshell-sdk => ../..
