@@ -5,10 +5,10 @@
   generated gRPC resources and the versioned cautem control API.
 </p>
 <p align="center">
-  <a href="https://github.com/cautem/cautem-sdk/actions/workflows/ci.yml"><img src="https://github.com/cautem/cautem-sdk/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://pkg.go.dev/github.com/cautem/cautem-sdk"><img src="https://pkg.go.dev/badge/github.com/cautem/cautem-sdk.svg" alt="Go Reference"></a>
+  <a href="https://github.com/cautem/quarshell-sdk/actions/workflows/ci.yml"><img src="https://github.com/cautem/quarshell-sdk/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://pkg.go.dev/github.com/cautem/quarshell-sdk"><img src="https://pkg.go.dev/badge/github.com/cautem/quarshell-sdk.svg" alt="Go Reference"></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/cautem/cautem-sdk"><img src="https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go" alt="Go Version"></a>
+  <a href="https://github.com/cautem/quarshell-sdk"><img src="https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go" alt="Go Version"></a>
 </p>
 <p align="center">
   <sub>Part of the <a href="https://github.com/cautem">cautem / cautem</a> ecosystem</sub>
@@ -57,7 +57,7 @@ import (
     "context"
     "fmt"
 
-    "github.com/cautem/cautem-sdk/go/cautem"
+    "github.com/cautem/quarshell-sdk/go/cautem"
 )
 
 func main() {
@@ -112,7 +112,7 @@ pass the returned token in the next call to continue pagination.
 | Roadmap | [ROADMAP.md](./ROADMAP.md) |
 | Organization | [https://github.com/cautem](https://github.com/cautem) |
 | Organization overview | [github.com/cautem](https://github.com/cautem) |
-| pkg.go.dev | [`github.com/cautem/cautem-sdk`](https://pkg.go.dev/github.com/cautem/cautem-sdk) |
+| pkg.go.dev | [`github.com/cautem/quarshell-sdk`](https://pkg.go.dev/github.com/cautem/quarshell-sdk) |
 
 ## License
 

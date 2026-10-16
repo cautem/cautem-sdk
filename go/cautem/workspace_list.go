@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	compatSDK "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
-	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
+	gc "github.com/cautem/quarshell-sdk/internal/gatewayclient"
 )
 
 // WorkspaceListOptions selects one page of workspaces.

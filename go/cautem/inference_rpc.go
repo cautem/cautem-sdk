@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
-	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
+	gc "github.com/cautem/quarshell-sdk/internal/gatewayclient"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
