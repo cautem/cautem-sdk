@@ -166,6 +166,7 @@ func sandboxFromSummary(item *controlv1.SandboxSummary) Sandbox {
 	return Sandbox{
 		Name: item.GetName(), ID: item.GetId(), Image: item.GetImage(),
 		Workspace: item.GetWorkspace(), ResourceVersion: item.GetResourceVersion(), Status: item.GetRegistryStatus(),
-		Labels: item.GetLabels(),
+		ComputeDriver: item.GetComputeDriver(),
+		Labels:        item.GetLabels(),
 	}
 }

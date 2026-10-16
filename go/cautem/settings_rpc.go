@@ -6,18 +6,18 @@ import (
 	"fmt"
 	"strconv"
 
-	openshell "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
+	compatSDK "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
 )
 
 // GetSetting reads a registered gateway setting through OpenShell RPC.
 func (c *Client) GetSetting(ctx context.Context, key string) (string, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return "", err
 	}
 	config, err := client.Config().GetGateway(ctx)
 	if err != nil {
-		return "", fmt.Errorf("get OpenShell gateway settings: %w", err)
+		return "", fmt.Errorf("get gateway settings: %w", err)
 	}
 	value, ok := config.Settings[key]
 	if !ok || value.Type == "" {
@@ -28,13 +28,13 @@ func (c *Client) GetSetting(ctx context.Context, key string) (string, error) {
 
 // ListSettings lists configured gateway settings through OpenShell RPC.
 func (c *Client) ListSettings(ctx context.Context) (map[string]string, error) {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return nil, err
 	}
 	config, err := client.Config().GetGateway(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("list OpenShell gateway settings: %w", err)
+		return nil, fmt.Errorf("list gateway settings: %w", err)
 	}
 	result := make(map[string]string, len(config.Settings))
 	for key, value := range config.Settings {
@@ -47,29 +47,29 @@ func (c *Client) ListSettings(ctx context.Context) (map[string]string, error) {
 
 // PutSetting updates a gateway-global setting through OpenShell RPC.
 func (c *Client) PutSetting(ctx context.Context, key, value string) error {
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.Config().Update(ctx, c.workspace(), &openshell.ConfigUpdate{
+	_, err = client.Config().Update(ctx, c.workspace(), &compatSDK.ConfigUpdate{
 		Global: true, SettingKey: key,
-		SettingValue: &openshell.SettingValue{Type: openshell.SettingValueString, StringVal: value},
+		SettingValue: &compatSDK.SettingValue{Type: compatSDK.SettingValueString, StringVal: value},
 	})
 	if err != nil {
-		return fmt.Errorf("update OpenShell gateway setting %q: %w", key, err)
+		return fmt.Errorf("update gateway setting %q: %w", key, err)
 	}
 	return nil
 }
 
-func settingString(value openshell.SettingValue) string {
+func settingString(value compatSDK.SettingValue) string {
 	switch value.Type {
-	case openshell.SettingValueString:
+	case compatSDK.SettingValueString:
 		return value.StringVal
-	case openshell.SettingValueBool:
+	case compatSDK.SettingValueBool:
 		return strconv.FormatBool(value.BoolVal)
-	case openshell.SettingValueInt:
+	case compatSDK.SettingValueInt:
 		return strconv.FormatInt(value.IntVal, 10)
-	case openshell.SettingValueBytes:
+	case compatSDK.SettingValueBytes:
 		return base64.StdEncoding.EncodeToString(value.BytesVal)
 	default:
 		return ""

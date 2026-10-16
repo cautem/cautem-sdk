@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [v0.3.0] - 2026-10-16
+
+### Added
+
+- Add typed APIs for main-process attachment, interactive exec, rootfs upload, workload templates, and workspace listing.
+- Add a versioned external Go consumer check for the published SDK surface.
+
+### Changed
+
+- Update the Go client to the published control protocol v0.2.0 and current Gateway resource signatures.
+
 ## [v0.2.0] - 2026-10-13
 
 ### Changed

@@ -26,7 +26,7 @@ The [gateway guide](https://cautem.github.io/sandbox.dev/guides/gateway/) descri
 | --- | --- |
 | `cautem.control.v1` gRPC | `*ControlSandbox*`, `*ControlOperation*`, control log methods, `PostLogs`, proposal and policy methods, profile and credential methods, `ListServices`, `ListTemplates`, inference methods, `Info`, `Whoami`, and `ControlOverview` |
 | OpenShell gRPC | `Create`, `List`, `Get`, `Start`, `Stop`, `Delete`, and `Exec`; provider, workspace, service, SSH session, and gateway setting methods |
-| HTTP compatibility | `Healthz` and `AuthLogin` |
+| HTTP compatibility | `Healthz`, `AuthLogin`, and bounded rootfs image upload (`UploadRootfsTar`) |
 
 Interactive byte streams stay on the CLI (`cautem connect`). New gateway operations use the existing gRPC contracts.
 
@@ -42,7 +42,7 @@ Interactive byte streams stay on the CLI (`cautem connect`). New gateway operati
 
 ## Installation
 
-For source development, use the sibling `go.work` workspace and run `go test ./...` here. The control client depends on the gateway's generated Go contract package. Publish the gateway beta containing that package before publishing the matching SDK beta.
+For source development, use the sibling `go.work` workspace and run `go test ./...` here. `tests/consumer` is an external-module smoke test: it builds the public SDK with `GOWORK=off`, using only the versioned `cautem-proto` and OpenShell dependencies. CI runs that consumer independently of the monorepo workspace. The control client depends on the gateway's generated Go contract package. Publish the gateway beta containing that package before publishing the matching SDK beta.
 
 **Requirements:** Go 1.27+
 
@@ -86,6 +86,21 @@ visible to the caller, and `Get(ctx, name)` selects the default workspace. The
 `Exec(ctx, name, argv...)` method uses the pinned OpenShell Go SDK. The CLI uses native gRPC for `sandbox list/get`, filtered log snapshots, and a single
 sandbox's live log stream. `logs --all` enumerates caller-visible workspaces and
 uses bounded concurrent gRPC streams (up to 24 sandboxes per invocation).
+
+`UploadRootfsTar(ctx, fileName, size, source)` requests a workspace-bound,
+single-use staging token over OpenShell gRPC, then streams the archive to the
+gateway with an exact `Content-Length`. Put the returned token in the selected
+compute driver's `rootfs_tar_staging_token` config when creating the sandbox.
+The method honors context cancellation and requires HTTPS for remote gateways.
+
+`CreateWorkspaceWithLabels(ctx, name, labels)` creates a workspace with its
+labels through the pinned workspace RPC; `CreateWorkspace(ctx, name)` remains
+available for workspaces without labels.
+
+`ListWorkspacesPage(ctx, WorkspaceListOptions{PageSize, PageToken, LabelSelector})`
+returns one page of workspaces and its opaque `NextPageToken`. Label selector
+pairs use the upstream `key=value,key=value` syntax and are combined with AND;
+pass the returned token in the next call to continue pagination.
 
 
 ---

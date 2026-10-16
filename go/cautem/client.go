@@ -18,8 +18,10 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
-	openshell "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
+	compatSDK "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1"
+	compatTypes "github.com/NVIDIA/OpenShell/sdk/go/openshell/v1/types"
 	gc "github.com/cautem/cautem-sdk/internal/gatewayclient"
 	"google.golang.org/grpc"
 )
@@ -39,11 +41,11 @@ type Client struct {
 	base  string
 	token string
 	// Workspace selects the default workspace for resource-oriented methods.
-	Workspace     string
-	rpcMu         sync.Mutex
-	rpcConn       *grpc.ClientConn
-	openShellConn *grpc.ClientConn
-	upstream      *openshell.Client
+	Workspace  string
+	rpcMu      sync.Mutex
+	rpcConn    *grpc.ClientConn
+	compatConn *grpc.ClientConn
+	upstream   *compatSDK.Client
 }
 
 func (c *Client) workspace() string {
@@ -74,9 +76,9 @@ func (c *Client) Close() error {
 		closeErr = errors.Join(closeErr, c.upstream.Close())
 		c.upstream = nil
 	}
-	if c.openShellConn != nil {
-		closeErr = errors.Join(closeErr, c.openShellConn.Close())
-		c.openShellConn = nil
+	if c.compatConn != nil {
+		closeErr = errors.Join(closeErr, c.compatConn.Close())
+		c.compatConn = nil
 	}
 	if c.rpcConn != nil {
 		closeErr = errors.Join(closeErr, c.rpcConn.Close())
@@ -104,7 +106,23 @@ type (
 	ServiceRecord         = gc.ServiceRecord
 	SSHSession            = gc.SSHSession
 	SSHSessionInfo        = gc.SSHSessionInfo
+	// SandboxExecOptions configures streamed and interactive sandbox exec.
+	SandboxExecOptions = compatSDK.ExecOptions
+	// SandboxExecChunk is one stdout or stderr frame from streamed exec.
+	SandboxExecChunk      = compatSDK.ExecChunk
+	SandboxExecStreamType = compatTypes.StreamType
+	// SandboxExecStream yields output frames and the final process status.
+	SandboxExecStream = compatSDK.ExecStream
+	// SandboxInteractiveSession provides bidirectional terminal I/O.
+	SandboxInteractiveSession = compatSDK.InteractiveSession
 )
+
+// SandboxInteractiveOutput exposes stream identity alongside the usual
+// io.Reader view used by terminal consumers.
+type SandboxInteractiveOutput interface {
+	SandboxInteractiveSession
+	NextOutput() (*SandboxExecChunk, error)
+}
 
 // Create creates a runtime sandbox through the authorized Control RPC.
 func (c *Client) Create(ctx context.Context, sb Sandbox) error {
@@ -142,7 +160,7 @@ func (c *Client) Exec(ctx context.Context, name string, argv ...string) (ExecRes
 	if name == "" || len(argv) == 0 {
 		return ExecResult{}, fmt.Errorf("usage: Exec(name, argv...)")
 	}
-	client, err := c.openShellClient()
+	client, err := c.compatSDKClient()
 	if err != nil {
 		return ExecResult{}, err
 	}
@@ -151,6 +169,51 @@ func (c *Client) Exec(ctx context.Context, name string, argv ...string) (ExecRes
 		return ExecResult{}, fmt.Errorf("execute in sandbox %q: %w", name, err)
 	}
 	return ExecResult{ExitCode: result.ExitCode, Output: string(result.Stdout) + string(result.Stderr)}, nil
+}
+
+// ExecStreaming starts a server-streamed command in the selected workspace.
+// Callers must drain the stream and close it when finished.
+func (c *Client) ExecStreaming(ctx context.Context, workspace, name string, argv []string, options SandboxExecOptions) (SandboxExecStream, error) {
+	if name == "" || len(argv) == 0 {
+		return nil, fmt.Errorf("usage: ExecStreaming(workspace, name, argv, options)")
+	}
+	client, err := c.compatSDKClient()
+	if err != nil {
+		return nil, err
+	}
+	stream, err := client.Exec().Stream(ctx, workspace, name, argv, options)
+	if err != nil {
+		return nil, fmt.Errorf("stream exec in sandbox %q: %w", name, err)
+	}
+	return stream, nil
+}
+
+// ExecStreamingWithTimeout runs stream-mode exec with an optional server-side
+// process deadline in addition to the caller context deadline.
+func (c *Client) ExecStreamingWithTimeout(ctx context.Context, workspace, name string, argv []string, timeout time.Duration, options SandboxExecOptions) (SandboxExecStream, error) {
+	return c.execStreamingWithTimeout(ctx, workspace, name, argv, timeout, options)
+}
+
+// ExecInteractive starts a bidirectional terminal command in the selected workspace.
+// The pinned OpenShell SDK currently requests a PTY for every interactive session.
+func (c *Client) ExecInteractive(ctx context.Context, workspace, name string, argv []string, cols, rows uint32, options SandboxExecOptions) (SandboxInteractiveSession, error) {
+	if name == "" || len(argv) == 0 {
+		return nil, fmt.Errorf("usage: ExecInteractive(workspace, name, argv, options)")
+	}
+	client, err := c.compatSDKClient()
+	if err != nil {
+		return nil, err
+	}
+	session, err := client.Exec().Interactive(ctx, workspace, name, argv, cols, rows, options)
+	if err != nil {
+		return nil, fmt.Errorf("interactive exec in sandbox %q: %w", name, err)
+	}
+	return session, nil
+}
+
+// CloseSandboxExecInput closes stdin while allowing interactive output to drain.
+func CloseSandboxExecInput(session SandboxInteractiveSession) error {
+	return compatSDK.CloseInteractiveInput(session)
 }
 
 // Connect is intentionally unsupported in the SDK.
