@@ -1,6 +1,6 @@
 # Roadmap — cautem-sdk
 
-Status: **v0.3.0** (release prepared) · Uses [cautem-proto](https://github.com/cautem/quarshell-proto) `v0.2.0` and talks to [cautem-gateway](https://github.com/cautem/quarshell-gateway)
+Status: **v0.3.1** (release prepared) · Uses [cautem-proto](https://github.com/cautem/quarshell-proto) `v0.2.0` and talks to [cautem-gateway](https://github.com/cautem/quarshell-gateway)
 
 ## This module
 

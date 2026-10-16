@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [v0.3.1] - 2026-10-16
+
+### Changed
+
+- Publish the module under `github.com/cautem/quarshell-sdk`; earlier tags keep their original module path.
+- Pin `quarshell-proto` to v0.2.1.
+
 ## [v0.3.0] - 2026-10-16
 
 ### Added
