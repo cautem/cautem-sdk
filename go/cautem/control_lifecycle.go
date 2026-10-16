@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
+	controlv1 "github.com/cautem/quarshell-proto/gen/go/cautem/control/v1"
 )
 
 const maxControlLogWatches = 24

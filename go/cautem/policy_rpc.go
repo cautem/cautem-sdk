@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
+	controlv1 "github.com/cautem/quarshell-proto/gen/go/cautem/control/v1"
 )
 
 func (c *Client) GetGlobalPolicy(ctx context.Context) ([]byte, error) {

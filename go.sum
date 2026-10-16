@@ -1,7 +1,7 @@
 github.com/NVIDIA/OpenShell/sdk/go v0.0.0-20261013191600-5a7728c304b5 h1:kaCv8vel/347r5p/R0RWU1G3gFWYHHEaJwG03WGlUs8=
 github.com/NVIDIA/OpenShell/sdk/go v0.0.0-20261013191600-5a7728c304b5/go.mod h1:+wnjuZwBJH2yz8cU1t7FiGK7xPQyxjOY3YZNFcfpL90=
-github.com/cautem/cautem-proto v0.2.0 h1:7uQ/JwkXHWKgM5rt4lmzYuP0kAXVTDY5WVdWsEdWxiA=
-github.com/cautem/cautem-proto v0.2.0/go.mod h1:koEKXv8fMV+6dplfcA3vp18xZh/bNsAgylkiWyVG0UA=
+github.com/cautem/quarshell-proto v0.2.1-0.20261016152658-94146822ca96 h1:HBb/8U6GJGasQCo8Z34WOZ0gYHDk/SsSh27f+TKtXv4=
+github.com/cautem/quarshell-proto v0.2.1-0.20261016152658-94146822ca96/go.mod h1:rA/IaFHct/Y8TzZvGH74D3dY9B5iptb8AEi1iNMcFxM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=

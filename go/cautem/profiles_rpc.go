@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	controlv1 "github.com/cautem/cautem-proto/gen/go/cautem/control/v1"
+	controlv1 "github.com/cautem/quarshell-proto/gen/go/cautem/control/v1"
 	gc "github.com/cautem/quarshell-sdk/internal/gatewayclient"
 )
 

@@ -69,7 +69,7 @@ jobs:
             ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-proto v0.2.0 => ./cautem-proto
+          replace github.com/cautem/quarshell-proto v0.2.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -116,7 +116,7 @@ jobs:
             ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-proto v0.2.0 => ./cautem-proto
+          replace github.com/cautem/quarshell-proto v0.2.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -163,7 +163,7 @@ jobs:
             ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-proto v0.2.0 => ./cautem-proto
+          replace github.com/cautem/quarshell-proto v0.2.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
@@ -208,7 +208,7 @@ jobs:
             ./cautem-proto
           )
 
-          replace github.com/cautem/cautem-proto v0.2.0 => ./cautem-proto
+          replace github.com/cautem/quarshell-proto v0.2.0 => ./cautem-proto
           EOF
 
       - uses: actions/setup-go@v5
