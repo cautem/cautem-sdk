@@ -6,7 +6,7 @@ toolchain go1.27.2
 
 require (
 	github.com/NVIDIA/OpenShell/sdk/go v0.0.0-20261013191600-5a7728c304b5
-	github.com/cautem/cautem-proto v0.2.0
+	github.com/cautem/quarshell-proto v0.2.1-0.20261016152658-94146822ca96
 	golang.org/x/net v0.60.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12

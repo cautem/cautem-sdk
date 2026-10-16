@@ -20,7 +20,7 @@
 
 The [gateway guide](https://cautem.github.io/sandbox.dev/guides/gateway/) describes the service this client calls. [OpenShell compatibility](https://cautem.github.io/sandbox.dev/reference/openshell-compatibility/) is tracked separately from this SDK's HTTP API.
 
-**cautem-sdk** talks to [cautem-gateway](https://github.com/cautem/cautem-gateway) through typed RPC clients. Its methods use these transports:
+**cautem-sdk** talks to [cautem-gateway](https://github.com/cautem/quarshell-gateway) through typed RPC clients. Its methods use these transports:
 
 | Transport | SDK methods |
 | --- | --- |
