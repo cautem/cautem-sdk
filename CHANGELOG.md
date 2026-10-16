@@ -12,6 +12,7 @@
 ### Changed
 
 - Update the Go client to the published control protocol v0.2.0 and current Gateway resource signatures.
+- Refresh `golang.org/x/net` to v0.61.0 and its compatible `x/sync`, `x/sys`, and `x/text` dependencies.
 
 ## [v0.2.0] - 2026-10-13
 
